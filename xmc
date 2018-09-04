@@ -1,0 +1,204 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use UI::Dialog;
+use Term::ReadKey;
+use Term::ANSIScreen qw(cls);
+
+my $FileEditor = "/bin/nano";
+my $InitDName = "/etc/init.d/xonotic";
+my $XONOTICDIR = "/root/Xonotic";
+my $BackupCommand = "/root/XonoticBackup/minebackup.pl";
+my $PagerCommand = "/usr/bin/less";
+my $Logfile = "/root/Xonotic/Xonotic.log";
+my $XonoticConf = "/root/Xonotic/data/server.cfg";
+
+###################################################
+# No changes below here
+###################################################
+
+my $MySettings = "$ENV{'HOME'}/.xmcrc";
+
+my $XMC_ver = "1.0.0";
+my $Record = "false";	# Are results saved?
+my $TempDir = "/tmp";
+my $RobotName = "";
+my $BotVersion = "";
+my $UserName = "";
+my $ServerStatus = "foo";
+
+my $d = new UI::Dialog ( backtitle => "Xonotic Management Console v$XMC_ver", height => 20, width => 65, listheight => 5,
+	order => [ 'ascii', 'cdialog', 'xdialog' ]);
+
+my $windowtitle = "Welcome to the Xonotic Management Console!";
+my $enjoyedtitle = "We hope you enjoyed XMC!";
+my $introtext =
+"This is the Xonotic Management Console, a utility for Xonotic operators
+to manage their servers from a text GUI rather than the command line.";
+
+$d->msgbox( title => $windowtitle, text => $introtext );
+
+if (($d->state() eq "ESC") || ($d->state() eq "CANCEL"))
+{
+	exit 0;
+}
+
+# Check for config file
+if (-f $MySettings)
+{
+	# Read in settings
+	open (my $FH, "<", $MySettings) or die "Could not read default file '$MySettings' $!";
+	while (<$FH>)
+	{
+		chop();
+		my ($Command, $Setting) = split(/=/, $_);
+		if ($Command eq "fileeditor")
+		{
+			$FileEditor = $Setting;
+		}
+		if ($Command eq "initdname")
+		{
+			$InitDName = $Setting;
+		}
+		if ($Command eq "xonoticdir")
+		{
+			$XONOTICDIR = $Setting;
+		}
+		if ($Command eq "backupcommand")
+		{
+			$BackupCommand = $Setting;
+		}
+		if ($Command eq "pagercommand")
+		{
+			$PagerCommand = $Setting;
+		}
+		if ($Command eq "logfile")
+		{
+			$Logfile = $Setting;
+		}
+		if ($Command eq "xonoticconf")
+		{
+			$XonoticConf = $Setting;
+		}
+	}
+	close($FH);
+}
+else
+{
+	# Store defaults
+	open (my $FH, ">", $MySettings) or die "Could not create default file '$MySettings' $!";
+	print $FH "fileeditor=/bin/nano\n";
+	print $FH "initdname=/etc/init.d/xonotic\n";
+	print $FH "xonoticdir=/root/Xonotic\n";
+	print $FH "backupcommand=/root/XonoticBackup/xonoticbackup.pl\n";
+	print $FH "pagercommand=/usr/bin/less\n";
+	print $FH "logfile=/root/Xonotic/Xonotic.log\n";
+	print $FH "xonoticconf=/root/Xonotic/data/server.cfg\n";
+	close($FH);
+}
+
+my $menuselection = "";
+
+
+sub CheckServerStatus
+{
+	my $running=`ps ax|grep xonotic-linux64-dedicated|grep -v grep`;
+	if ($running ne "")
+	{
+		$ServerStatus = "Running";
+	}
+	else
+	{
+		$ServerStatus = "Stopped";
+	}
+
+}
+
+sub MainMenu
+{
+	my $WantRespawn="ON";
+	CheckServerStatus();
+	if (-f "$XONOTICDIR/nostart")
+	{
+		$WantRespawn="OFF";
+	}
+
+	$menuselection = $d->menu( title => "Main Menu", text => "Server is $ServerStatus and respawn is $WantRespawn - Select one:",
+                            list => [ '1', 'Start Server',
+                                      '2', 'Stop Server',
+                                      '3', 'Server Console',
+                                      '4', 'Turn Off Respawn',
+                                      '5', 'Turn Respawn On',
+                                      '6', 'Edit xonotic.cfg',
+                                      '7', 'Run Backup',
+                                      '8', 'View Log',
+                                      '9', 'Edit Settings',
+                                      'q', 'Quit XMC' ] );
+}
+
+while (-1)
+{
+	MainMenu();
+	if (($menuselection eq "CANCEL") || ($menuselection eq "ESC") || ($menuselection eq "") || ($menuselection eq "q") || ($menuselection eq "Q"))
+	{
+		$d->msgbox( title => $enjoyedtitle, text => "Thanks for using XMC..." );
+		exit 0;
+	}
+	if ($menuselection eq "1")
+	{
+		system("$InitDName start");
+	}
+	elsif ($menuselection eq "2")
+	{
+		if ($d->yesno( text => "Confirm stopping the server", text => "Are you sure you want to shut down the server?" ))
+		{
+			system("$InitDName stop");
+			sleep(5);
+			system("killall startminetest");
+		}
+	}
+	elsif ($menuselection eq "3")
+	{
+		$d->msgbox( text => "To exit the Xonotic console and return to XMC press CTRL-A CTRL-D" );
+		system("screen -r");
+	}
+	elsif ($menuselection eq "4")
+	{
+		# Turn off respawn
+		system("touch $XONOTICDIR/nostart");
+	}
+	elsif ($menuselection eq "5")
+	{
+		# Turn respawn back on
+		if (-f "$XONOTICDIR/nostart")
+		{
+			unlink("$XONOTICDIR/nostart");
+		}
+	}
+	elsif ($menuselection eq "6")
+	{
+		# Edit minetest.conf file
+		system("$FileEditor $XonoticConf");
+	}
+	elsif ($menuselection eq "7")
+	{
+		# Run a backup
+		system("clear");
+		system("$BackupCommand");
+		print "Press Enter To Continue";
+		my $entered = <STDIN>;
+	}
+	elsif ($menuselection eq "8")
+	{
+		# View log file
+		system("$PagerCommand $Logfile");
+	}
+	elsif ($menuselection eq "9")
+	{
+		# Edit minetest.conf file
+		system("$FileEditor $MySettings");
+	}
+}
+
+exit 0;
