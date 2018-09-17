@@ -9,7 +9,7 @@ use Term::ANSIScreen qw(cls);
 my $FileEditor = "/bin/nano";
 my $InitDName = "/etc/init.d/xonotic";
 my $XONOTICDIR = "/root/Xonotic";
-my $BackupCommand = "/root/XonoticBackup/minebackup.pl";
+my $BackupCommand = "/root/XonoticBackup/xonoticbackup.pl";
 my $PagerCommand = "/usr/bin/less";
 my $Logfile = "/root/Xonotic/Xonotic.log";
 my $XonoticConf = "/root/Xonotic/data/server.cfg";
@@ -20,7 +20,7 @@ my $XonoticConf = "/root/Xonotic/data/server.cfg";
 
 my $MySettings = "$ENV{'HOME'}/.xmcrc";
 
-my $XMC_ver = "1.0.0";
+my $XMC_ver = "1.5.0";
 my $Record = "false";	# Are results saved?
 my $TempDir = "/tmp";
 my $RobotName = "";
@@ -155,7 +155,7 @@ while (-1)
 		{
 			system("$InitDName stop");
 			sleep(5);
-			system("killall startminetest");
+			system("killall xonotic-linux64-dedicated");
 		}
 	}
 	elsif ($menuselection eq "3")
@@ -178,7 +178,7 @@ while (-1)
 	}
 	elsif ($menuselection eq "6")
 	{
-		# Edit minetest.conf file
+		# Edit server.cfg file
 		system("$FileEditor $XonoticConf");
 	}
 	elsif ($menuselection eq "7")
@@ -196,7 +196,7 @@ while (-1)
 	}
 	elsif ($menuselection eq "9")
 	{
-		# Edit minetest.conf file
+		# Edit ~/.xmcrc file
 		system("$FileEditor $MySettings");
 	}
 }
