@@ -12,7 +12,7 @@ my $XONOTICDIR = "/root/Xonotic";
 my $BackupCommand = "/root/XonoticBackup/xonoticbackup.pl";
 my $PagerCommand = "/usr/bin/less";
 my $Logfile = "/root/Xonotic/Xonotic.log";
-my $XonoticConf = "/root/Xonotic/data/server.cfg";
+my $XonoticConf = "/root/Xonotic/server/server.cfg";
 
 ###################################################
 # No changes below here
