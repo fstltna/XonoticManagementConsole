@@ -94,7 +94,7 @@ else
 	print $FH "backupcommand=/root/XonoticBackup/xonoticbackup.pl\n";
 	print $FH "pagercommand=/usr/bin/less\n";
 	print $FH "logfile=/root/Xonotic/Xonotic.log\n";
-	print $FH "xonoticconf=/root/Xonotic/data/server.cfg\n";
+	print $FH "xonoticconf=/root/Xonotic/server/server.cfg\n";
 	close($FH);
 }
 
